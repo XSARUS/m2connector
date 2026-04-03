@@ -6,12 +6,11 @@
   ],
   "type": "magento2-module",
   "require": {
-    "php": "^7.3 || ^8.0",
-    "flowmailer/flowmailer-php-sdk-implementation": "^1.0 || ^2.0"
+    "php": "^8.0",
+    "flowmailer/flowmailer-php-sdk": "^2.4"
   },
   "require-dev": {
     "ergebnis/composer-normalize": "^2.23",
-    "flowmailer/flowmailer-php-sdk": "^1.0",
     "friendsofphp/php-cs-fixer": "^3.4",
     "icanhazstring/composer-unused": "^0.7.12",
     "maglnet/composer-require-checker": "^3.8",
@@ -23,6 +22,12 @@
   },
   "minimum-stability": "stable",
   "prefer-stable": true,
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/XSARUS/flowmailer-php-sdk"
+    }
+  ],
   "autoload": {
     "psr-4": {
       "Flowmailer\\M2Connector\\": ""
@@ -41,7 +46,8 @@
       "localheinz/composer-normalize": true,
       "ergebnis/composer-normalize": true,
       "franzl/studio": true,
-      "icanhazstring/composer-unused": true
+      "icanhazstring/composer-unused": true,
+      "php-http/discovery": true
     }
   },
   "extra": {
