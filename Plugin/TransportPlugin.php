@@ -10,10 +10,10 @@ namespace Flowmailer\M2Connector\Plugin;
 use Flowmailer\API\Flowmailer;
 use Flowmailer\API\Model\SubmitMessage;
 use Flowmailer\M2Connector\Registry\MessageData;
-use Laminas\Mail\Message;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\MailException;
+use Magento\Framework\Mail\MessageInterface;
 use Magento\Framework\Mail\TransportInterface;
 use Magento\Framework\Module\Manager;
 use Magento\Framework\Phrase;
@@ -66,15 +66,13 @@ final class TransportPlugin
 
     private function getSubmitMessages(TransportInterface $transport): \Generator
     {
-        $raw             = $transport->getMessage()->getRawMessage();
-        $rawb64          = base64_encode($raw);
-        $originalMessage = Message::fromString($raw);
+        $originalMessage = $transport->getMessage();
 
         $from     = '';
         $fromName = '';
-        if ($originalMessage->getFrom()->count() > 0) {
-            $from     = $originalMessage->getFrom()->current()->getEmail();
-            $fromName = $originalMessage->getFrom()->current()->getName();
+        if ($originalMessage->getFrom() !== null && count($originalMessage->getFrom()) > 0) {
+            $from     = current($originalMessage->getFrom())->getEmail();
+            $fromName = current($originalMessage->getFrom())->getName();
         }
 
         $recipients = $this->getRecipients($originalMessage);
@@ -86,7 +84,7 @@ final class TransportPlugin
                 ->setHeaderFromAddress($from)
                 ->setHeaderFromName($fromName)
                 ->setRecipientAddress(trim($recipient))
-                ->setMimedata($rawb64)
+                ->setMimedata(base64_encode($originalMessage->getRawMessage()))
                 ->setData(
                     json_decode(json_encode($this->messageData->getTemplateVars()))
                 )
@@ -135,17 +133,20 @@ final class TransportPlugin
         }
     }
 
-    private function getRecipients(Message $originalMessage): array
-    {
+    private function getRecipients(MessageInterface $originalMessage): array    {
         $recipients = [];
         foreach ($originalMessage->getTo() as $recipient) {
             $recipients[] = $recipient->getEmail();
         }
-        foreach ($originalMessage->getCc() as $recipient) {
-            $recipients[] = $recipient->getEmail();
+        if ($originalMessage->getCc() !== null) {
+            foreach ($originalMessage->getCc() as $recipient) {
+                $recipients[] = $recipient->getEmail();
+            }
         }
-        foreach ($originalMessage->getBcc() as $recipient) {
-            $recipients[] = $recipient->getEmail();
+        if ($originalMessage->getBcc() !== null) {
+            foreach ($originalMessage->getBcc() as $recipient) {
+                $recipients[] = $recipient->getEmail();
+            }
         }
 
         return $recipients;
